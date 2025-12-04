@@ -1,0 +1,18 @@
+[project]
+name = "aoc2025"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "itrx>=0.2.0",
+    "neworder>=1.4.4",
+    "ruff>=0.14.7",
+]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["ARG", "B", "C", "E", "F", "I", "N", "PERF", "PTH", "RET", "RUF", "SIM", "UP", "W"]
+ignore = ["E501"]
