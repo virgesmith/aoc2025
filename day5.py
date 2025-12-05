@@ -1,4 +1,3 @@
-from operator import add
 from pathlib import Path
 
 from itrx import Itr
@@ -32,39 +31,33 @@ def part1(data: str) -> int:
 
 
 def part2(data: str) -> int:
-    fresh = (Itr(data.split("\n"))
-        .take_while(lambda line: line != "")
-        .map(lambda line: line.split("-"))
-        .map(lambda ij: (int(ij[0]), int(ij[1])))
-        .collect(list)
+    fresh = Itr(
+        sorted(
+            Itr(data.split("\n"))
+            .take_while(lambda line: line != "")
+            .map(lambda line: [int(n) for n in line.split("-")])
+            .collect()
+        )
     )
 
-    def consolidate(ranges: list[tuple[int, int]]) -> list[tuple[int, int]]:
-        consolidated = []
-        for r in ranges:
-            used = False
-            for i, e in enumerate(consolidated):
-                if r[0] <= e[1] <= r[1] or e[0] <= r[1] <= e[1]:
-                    consolidated[i] = (min(e[0], r[0]), max(e[1], r[1]))
-                    used = True
-                    break
-            if not used:
-                consolidated.append(r)
-        return consolidated
+    total = 0
+    current = fresh.next()
 
-    n = len(fresh)
-    while True:
-        fresh = consolidate(fresh)
-        if len(fresh) == n:  # no further consolidation
-            break
-        n = len(fresh)
+    def merge(r: list[int]) -> None:
+        nonlocal current, total
+        if r[0] <= current[1] + 1:  # merge overlapping/adjacent intervals
+            current[1] = max(current[1], r[1])
+        else:
+            total += current[1] - current[0] + 1
+            current = r
 
-    return sum(r[1] - r[0] + 1 for r in fresh)
+    fresh.for_each(merge)
+    total += current[1] - current[0] + 1
+    return total
+
 
 if __name__ == "__main__":
     print(part1(test_data))  # 3
     print(part1(data))  # 821
     print(part2(test_data))  # 14
     print(part2(data))  # 344771884978261
-
-
