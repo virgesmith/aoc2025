@@ -57,9 +57,11 @@ def part1(data: str, n: int) -> int:
     def update_connections(pair: tuple[int, int]) -> None:
         nonlocal connections
         a, b = pair
-        circuit = connections[a] | connections[b]
-        for c in circuit:
-            connections[c] = circuit
+        itr_a, itr_b = Itr(connections).enumerate().tee()
+        ia = itr_a.skip_while(lambda c: a not in c[1]).next()[0]
+        ib = itr_b.skip_while(lambda c: b not in c[1]).next()[0]
+        if ia != ib:
+            connections[min(ia, ib)] |= connections.pop(max(ia, ib))
 
     # select n shortest pairings and track connections
     Itr(sorted_unique_indices(dist2s)).take(n).for_each(update_connections)
@@ -80,12 +82,14 @@ def part2(data: str) -> int:
     def update_connections(pair: tuple[int, int]) -> bool:
         nonlocal connections, last_pair
         a, b = pair
-        circuit = connections[a] | connections[b]
-        if len(circuit) == len(positions):
+        itr_a, itr_b = Itr(connections).enumerate().tee()
+        ia = itr_a.skip_while(lambda c: a not in c[1]).next()[0]
+        ib = itr_b.skip_while(lambda c: b not in c[1]).next()[0]
+        if ia != ib:
+            connections[min(ia, ib)] |= connections.pop(max(ia, ib))
+        if len(connections) == 1:
             last_pair = pair
             return False
-        for c in circuit:
-            connections[c] = circuit
         return True
 
     # select ordered pairings and track connections until all connected
