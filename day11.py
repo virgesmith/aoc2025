@@ -1,4 +1,3 @@
-from graphlib import TopologicalSorter
 from operator import mul
 from pathlib import Path
 
