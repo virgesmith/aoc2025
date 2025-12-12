@@ -67,13 +67,8 @@ def part2(data: str) -> int:
     areas = rect_areas(np.array(all_corners))
     pairs = sorted_unique_indices(areas)
 
-    def non_edge_corners(pair):
-        all = [all_corners[pair[0]], all_corners[pair[1]]]  # these ARE edge corners by definition
-        all.append((all[0][0], all[1][1]))
-        all.append((all[1][0], all[0][1]))
-        return Itr(all).filter(lambda c: c not in all_corners).collect()
-
     for pair in pairs:
+
         def interior_span(pair):
             x0, y0 = all_corners[pair[0]]
             x1, y1 = all_corners[pair[1]]
@@ -103,59 +98,3 @@ if __name__ == "__main__":
     print(part1(data))  # 4748769124
     print(part2(test_data))  # 24
     print(part2(data))  # 1525991432
-"""
- 01234567890123
-0..............
-1.......0---1..
-2.......|...|..
-3..6----7...|..
-4..|........|..
-5..5------4.|..
-6.........|.|..
-7.........3-2..
-8..............
-"""
-
-
-# def old():
-#     def intersects(horiz, point):
-#         xmin = min(horiz[0][0], horiz[1][0])
-#         xmax = max(horiz[0][0], horiz[1][0])
-#         return (xmin <= point[0] <= xmax) and (0 <= horiz[0][1] <= point[1])
-
-#     for pair in pairs:
-
-#         if areas[*pair] != 24:
-#             continue
-
-#         print(pair, areas[*pair])
-#         x0, y0 = corners[pair[0]]
-#         x1, y1 = corners[pair[1]]
-
-#         interior_x = range(min(x0, x1), max(x0, x1) + 1)
-#         interior_y = range(min(y0, y1), max(y0, y1) + 1)
-
-#         sides = []
-
-#         # TODO since holes are not possible, just test the boundary?
-#         def inside() -> bool:
-#             for x in interior_x:
-#                 crossings= 0
-#                 for h in horiz:
-#                     crossings += intersects(h, (x, y0))
-#                 print(f"({x}, {y0}):{crossings0} ({x}, {y1}):{crossings1}")
-#                 if crossings0 % 2 == 0 or crossings1 % 2 == 0:
-#                     return False
-
-#             # for y in interior_y:
-#             #     for x in interior_x:
-#             #         crossings = 0
-#             #         for h in horiz:
-#             #             crossings += intersects(h, (x, y))
-#             #         if crossings % 2 == 0:
-#             #             return False
-#             return True
-
-#         if inside():
-#             return areas[*pair]
-#     return 0
