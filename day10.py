@@ -70,7 +70,7 @@ def part2(data: str) -> int:
 
         presses = np.vstack(Itr(buttons).map(press).collect()).T
 
-        x0 = np.ones(presses.shape[1])  # setting initially to zero sometime gives results that arent the minimum
+        x0 = np.ones(presses.shape[1])  # setting initially to zero sometimes gives results that aren't the minimum
         constraints = LinearConstraint(presses, joltage, joltage)
         integrality = np.ones(presses.shape[1], dtype=int)
         res = milp(x0, constraints=constraints, integrality=integrality)

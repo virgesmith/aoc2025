@@ -59,12 +59,12 @@ def part1(data: str) -> int:
     return coverage.zip(region_area.map(prod)).filter(lambda a: a[0] <= a[1]).count()
 
 
-def part2(data: str) -> int:
-    pass
+def part2(_: str) -> str:
+    return "There is no part 2!"
 
 
 if __name__ == "__main__":
     print(part1(test_data))  #
     print(part1(data))  #
-    # print(part2(test_data2))  # 2
-    # print(part2(data))  #
+    print(part2(test_data))  # 2
+    print(part2(data))  #
