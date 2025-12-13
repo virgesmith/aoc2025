@@ -1,10 +1,10 @@
-from itertools import permutations, product
-from math import prod
+from itertools import permutations
 from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
 from itrx import Itr
+from scipy.optimize import LinearConstraint, milp
 
 test_data = """[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
 [...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}
@@ -21,12 +21,14 @@ def part1(data: str) -> int:
     total_presses = 0
 
     for line in machines:
-        lights = [c == "#" for c in list(next(line))[1:-1]]
+        lights = Itr(next(line)).map(lambda c: c == "#").collect(list)[1:-1]
+        n_lights = len(lights)
+
         *buttons, _ = line.collect()
         buttons = Itr(buttons).map(eval).collect()
 
-        def apply(presses) -> list[bool]:
-            state = [False] * len(lights)
+        def apply(presses: tuple[int, ...], n_lights: int) -> list[bool]:
+            state = [False] * n_lights
             for p in presses:
                 if isinstance(p, int):
                     state[p] = not state[p]
@@ -39,9 +41,8 @@ def part1(data: str) -> int:
         while n_presses <= len(buttons):
             matched = False
             for presses in permutations(buttons, n_presses):
-                if apply(presses) == lights:
+                if apply(presses, n_lights) == lights:
                     matched = True
-                    # print("matched", n_presses, lights, presses)
                     break
             if matched:
                 total_presses += n_presses
@@ -62,37 +63,22 @@ def part2(data: str) -> int:
 
         joltage = np.array(eval(joltage.replace("}", "]").replace("{", "[")), dtype=int)
 
-        def press(button: set[int]) -> npt.NDArray:
+        def press(button: set[int], n_lights=n_lights) -> npt.NDArray:
             v = np.zeros(n_lights, dtype=int)
             v[list(button)] += 1
             return v
 
         presses = np.vstack(Itr(buttons).map(press).collect()).T
 
-        # solve Ax = b where x is no of times each button press, b is joltage
-        def brute_force_integer_solve(A: npt.NDArray, b: npt.NDArray) -> npt.NDArray | None:
-            """
-            Brute-force integer solution search for very small problems.
-            """
+        x0 = np.ones(presses.shape[1])  # setting initially to zero sometime gives results that arent the minimum
+        constraints = LinearConstraint(presses, joltage, joltage)
+        integrality = np.ones(presses.shape[1], dtype=int)
+        res = milp(x0, constraints=constraints, integrality=integrality)
 
-            result = np.full(b.shape, max(b) + 1)
+        if not res.success:
+            raise RuntimeError("milp failed")
 
-            ubounds = presses.T * joltage
-            ubounds = np.where(ubounds == 0, 1000000, ubounds).min(axis=1)
-
-            if prod(ubounds) > 1_000_000_000:
-                raise ValueError(f"search space is: {prod(ubounds)}")
-
-            for x_tuple in product(*(list(range(n + 1)) for n in ubounds)):
-                x = np.array(x_tuple)
-                if np.array_equal(A @ x_tuple, b) and x.sum() < result.sum():
-                    result = x
-            return result.sum() if result.sum() <= b.sum() else None
-
-        n_presses = brute_force_integer_solve(presses, joltage)
-        # print(n_presses)
-        if n_presses:
-            total_presses += n_presses
+        total_presses += int(sum(res.x))
 
     return total_presses
 
@@ -101,5 +87,4 @@ if __name__ == "__main__":
     print(part1(test_data))  # 7
     print(part1(data))  # 438
     print(part2(test_data))  # 33
-    # bruce-force fails miserably on part 2
-    print(part2(data))  #
+    print(part2(data))  # 16463
