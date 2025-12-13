@@ -23,10 +23,9 @@ def part1(data: str) -> int:
     for line in machines:
         lights = [c == "#" for c in list(next(line))[1:-1]]
         *buttons, _ = line.collect()
-        buttons = [eval(b) for b in buttons]
+        buttons = Itr(buttons).map(eval).collect()
 
         def apply(presses) -> list[bool]:
-            nonlocal lights
             state = [False] * len(lights)
             for p in presses:
                 if isinstance(p, int):
@@ -59,14 +58,13 @@ def part2(data: str) -> int:
     for line in machines:
         n_lights = len(line.next()) - 2
         *buttons, joltage = line.collect()
-        buttons = [eval(b) for b in buttons]
-        buttons = [np.full(1, b) if isinstance(b, int) else np.array(b) for b in buttons]
-        joltage = np.array(eval(joltage.replace("}", "]").replace("{", "[")))
+        buttons = Itr(buttons).map(eval).map(lambda b: {b} if isinstance(b, int) else set(b))
 
-        def press(button: npt.NDArray):
-            nonlocal n_lights
+        joltage = np.array(eval(joltage.replace("}", "]").replace("{", "[")), dtype=int)
+
+        def press(button: set[int]) -> npt.NDArray:
             v = np.zeros(n_lights, dtype=int)
-            v[button] += 1
+            v[list(button)] += 1
             return v
 
         presses = np.vstack(Itr(buttons).map(press).collect()).T
@@ -75,7 +73,6 @@ def part2(data: str) -> int:
         def brute_force_integer_solve(A: npt.NDArray, b: npt.NDArray) -> npt.NDArray | None:
             """
             Brute-force integer solution search for very small problems.
-            Tries x in [lower..upper]^n.
             """
 
             result = np.full(b.shape, max(b) + 1)
@@ -93,7 +90,7 @@ def part2(data: str) -> int:
             return result.sum() if result.sum() <= b.sum() else None
 
         n_presses = brute_force_integer_solve(presses, joltage)
-        print(n_presses)
+        # print(n_presses)
         if n_presses:
             total_presses += n_presses
 
