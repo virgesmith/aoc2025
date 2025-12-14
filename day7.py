@@ -59,11 +59,14 @@ def part2(data: str) -> int:
     def propagate(row: list[str]) -> None:
         nonlocal paths
         new_paths = paths.copy()
-        for i, c in enumerate(row):
-            if c == "^":
-                new_paths[i] = 0
-                new_paths[i - 1] += paths[i]
-                new_paths[i + 1] += paths[i]
+
+        def split(ic: tuple[int, str]):
+            i = ic[0]
+            new_paths[i] = 0
+            new_paths[i - 1] += paths[ic[0]]
+            new_paths[i + 1] += paths[ic[0]]
+
+        Itr(row).enumerate().filter(lambda ic: ic[1] == "^").for_each(split)
         paths = new_paths
 
     initial.for_each(propagate)

@@ -1,3 +1,5 @@
+from collections import defaultdict
+from collections.abc import Callable
 from operator import add, mul
 from pathlib import Path
 
@@ -26,30 +28,28 @@ def part1(data: str) -> int:
 def part2(data: str) -> int:
     homework = Itr(data.split("\n")).map(lambda line: list(line)).rev()
     homework.next()  # skip blank line
-    raw_ops = homework.next()
+    raw_ops = Itr(homework.next()).map_dict(defaultdict(lambda: None, {"+": add, "*": mul}))
 
     total = 0
-    subtotal = 0
     current_op = add
 
-    def compute(next: tuple[str, str]) -> None:
-        nonlocal total, subtotal, current_op
+    values = []
+
+    def compute(next: tuple[str, Callable | None]) -> None:
+        nonlocal total, values, current_op
         n, op = next
-        if op == "*":
-            current_op = mul
-            subtotal = 1
-        elif op == "+":
-            current_op = add
-            subtotal = 0
-        if n != "":
-            subtotal = current_op(subtotal, int(n))
+        if op:
+            current_op = op
+            values = [int(n)]
+        elif n != "":
+            values.append(int(n))
         else:
-            total += subtotal
+            total += Itr(values).reduce(current_op)
 
     Itr(map(list, zip(*homework.rev().collect(), strict=True))).map(lambda chars: "".join(chars).strip()).zip(
         raw_ops
     ).for_each(compute)
-    return total + subtotal
+    return total + Itr(values).reduce(current_op)  # subtotal
 
 
 if __name__ == "__main__":

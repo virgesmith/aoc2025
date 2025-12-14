@@ -18,7 +18,7 @@ def part1(data: str) -> int:
         .map(lambda r: [int(n) for n in r.split("-")])
         .flat_map(lambda ab: range(ab[0], ab[1] + 1))
         .filter(is_invalid)
-    ).fold(0, add)
+    ).reduce(add)
 
 
 def part2(data: str) -> int:
@@ -31,7 +31,7 @@ def part2(data: str) -> int:
         .map(lambda r: [int(n) for n in r.split("-")])
         .flat_map(lambda ab: range(ab[0], ab[1] + 1))
         .filter(is_invalid)
-    ).fold(0, add)
+    ).reduce(add)
 
 
 if __name__ == "__main__":

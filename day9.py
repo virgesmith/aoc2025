@@ -46,40 +46,26 @@ def part2(data: str) -> int:
     def make_line(a: int, b: int):
         return range(a, b + 1) if a < b else range(b, a + 1)
 
-    horz = (
-        base.copy()
-        .pairwise()
-        .filter(lambda pair: pair[0][1] == pair[1][1])
-        .map(lambda pair: (make_line(pair[0][0], pair[1][0]), pair[0][1]))
-    ).collect()
-    vert = (
-        base.copy()
-        .pairwise()
-        .filter(lambda pair: pair[0][0] == pair[1][0])
-        .map(lambda pair: (make_line(pair[0][1], pair[1][1]), pair[0][0]))
-    ).collect()
+    horz, vert = base.copy().pairwise().partition(lambda pair: pair[0][1] == pair[1][1])
+    horz = horz.map(lambda pair: (make_line(pair[0][0], pair[1][0]), pair[0][1])).collect()
+    vert = vert.map(lambda pair: (make_line(pair[0][1], pair[1][1]), pair[0][0])).collect()
 
-    def inside(p: int, lines) -> bool:
-        return bool(sum(p in line for line, _ in lines) % 2)
-
-    all_corners = base.copy().collect()
+    all_corners = base.collect()
 
     areas = rect_areas(np.array(all_corners))
     pairs = sorted_unique_indices(areas)
 
+    def interior_span(pair):
+        x0, y0 = all_corners[pair[0]]
+        x1, y1 = all_corners[pair[1]]
+        return range(min(x0, x1) + 1, max(x0, x1)), range(min(y0, y1) + 1, max(y0, y1))
+
+    def edges_intersect(span, xy, edges) -> bool:
+        edges = [e for e in edges if e[1] in span and xy in e[0]]
+        return len(edges) > 0
+
     for pair in pairs:
-
-        def interior_span(pair):
-            x0, y0 = all_corners[pair[0]]
-            x1, y1 = all_corners[pair[1]]
-            return range(min(x0, x1) + 1, max(x0, x1)), range(min(y0, y1) + 1, max(y0, y1))
-
         x_range, y_range = interior_span(pair)
-
-        def edges_intersect(span, xy, edges) -> bool:
-            edges = [e for e in edges if e[1] in span and xy in e[0]]
-            return len(edges) > 0
-
         if (
             edges_intersect(x_range, y_range.start, vert)
             or edges_intersect(x_range, y_range.stop - 1, vert)
@@ -87,7 +73,6 @@ def part2(data: str) -> int:
             or edges_intersect(y_range, x_range.stop - 1, horz)
         ):
             continue
-
         return areas[*pair]
 
     return 0
